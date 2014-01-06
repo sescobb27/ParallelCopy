@@ -5,6 +5,7 @@ import stat
 import sys
 import getopt
 import threading
+from signal import SIGKILL
 from subprocess import call
 
 thread = False
@@ -39,12 +40,15 @@ def copy_with_threads():
 
 def copy_with_forks():
     global children
-    os.setpgid(os.getpid(), os.getpid())
+    parent_pid = os.getpid()
+    os.setpgid(parent_pid,parent_pid)
     if not _dir:
         for _file in files:
-            if os.fork() == 0:
-                children.append(os.getpid())
+            child_pid = os.fork()
+            if child_pid:
+                children.append(child_pid)
                 copy( _file )
+                break
 
         for child in children:
             os.waitpid(child, 0)
@@ -103,5 +107,5 @@ if __name__ == '__main__':
         raise Exception("if -d or --dir flag is true source path must be supplied.\n")
     elif thread:
         copy_with_threads()
-    elif forks:
+    elif fork:
         copy_with_forks()
