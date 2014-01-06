@@ -2,15 +2,15 @@
 #### Simon Escobar Benitez
 
 ### Options
-> --dst= Destination
+> --dst=[Destination]
 
-> -d or --dir Parallel Copy a directory
+> -d or --dir # Copy a directory in Parallel, not implemented yet
 
-> --src= Source Directory for Parallel Copy ( Must be a Directory -d )
+> --src=[Source Directory]( Must be a Directory -d )
 
-> -t or --with-threads Parallel Copy using threads
+> -t or --with-threads # Parallel Copy using threads
 
-> -f or --with-forks Parallel Copy using forks (processes)
+> -f or --with-forks # Parallel Copy using forks (processes), not finished yet
 
 ### Usage
 ```bash
