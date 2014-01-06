@@ -3,10 +3,14 @@
 
 ### Options
 > --dst= Destination
-  -d or --dir Parallel Copy a directory
-  --src= Source Directory for Parallel Copy ( Must be a Directory -d )
-  -t or --with-threads Parallel Copy using threads
-  -f or --with-forks Parallel Copy using forks (processes)
+
+> -d or --dir Parallel Copy a directory
+
+> --src= Source Directory for Parallel Copy ( Must be a Directory -d )
+
+> -t or --with-threads Parallel Copy using threads
+
+> -f or --with-forks Parallel Copy using forks (processes)
 
 ### Usage
 ```bash
