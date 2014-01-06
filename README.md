@@ -6,7 +6,7 @@
 
 > -d or --dir # Copy a directory in Parallel, not implemented yet
 
-> --src=[Source Directory]( Must be a Directory -d )
+> --src=\[Source Directory\]( Must be a Directory -d )
 
 > -t or --with-threads # Parallel Copy using threads
 
