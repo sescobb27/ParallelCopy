@@ -12,12 +12,15 @@ module ParallelCopy
   @dir = false
   @files = nil
   CP_PATH = "/bin/cp".freeze
+  @processor_count = 1
   BANNER = <<-USAGE
   chmod +x parallel_copy.py
   # copy two files (text.txt Errors.go) using threads into `/home/simon` directory
   ./parallel_copy.py --dst=/home/simon -t file1 file2 ...
   USAGE
   BANNER.freeze
+
+  CPU_INFO_PATH = "/proc/cpuinfo".freeze
 
   def help
 <<-HELP
@@ -56,11 +59,18 @@ module ParallelCopy
       #   threads << Thread.new(file, &@copy)
       # end
       # threads.each(&:join)
+      count = 0
       @files.each do |file|
         stdin, stdout, thread = Open3.popen2(sprintf("%s %s %s", CP_PATH, file, @dst))
         stdin.close if stdin
         stdout.close if stdout
         threads << thread
+        count += 1
+        if count == @processor_count
+          threads.each(&:join)
+          count = 0
+          threads.clear
+        end
       end
 
       threads.each(&:join)
@@ -94,6 +104,20 @@ module ParallelCopy
       else
         $stderr.puts "#{dir} Doesn't exist"
         exit(1)
+      end
+  end
+
+  def processor_count
+      case ENV["_system_type"]
+        when /linux/i
+          File.open("/proc/cpuinfo",File::NONBLOCK | File::RDONLY){|file| file.read.scan(/^processor/).length}
+        # TODO
+        # when /darwin9/i
+          # `hwprefs cpu_count`.to_i
+        # when /darwin/i
+          # ((`which hwprefs` != '') ? `hwprefs thread_count` : `sysctl -n hw.ncpu`).to_i
+        # when /freebsd/i
+          # `sysctl -n hw.ncpu`.to_i
       end
   end
 
@@ -146,6 +170,7 @@ module ParallelCopy
 
     verify_dir! @dst
 
+    @processor_count = processor_count
     if @thread
       copy_with_threads
     elsif  @fork
