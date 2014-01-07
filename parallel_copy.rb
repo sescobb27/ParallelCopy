@@ -114,10 +114,10 @@ module ParallelCopy
       end
   end
 
-  def processor_count
+  def count_processors
       case ENV["_system_type"]
         when /linux/i
-          File.open("/proc/cpuinfo",File::NONBLOCK | File::RDONLY){|file| file.read.scan(/^processor/).length}
+          File.open(CPU_INFO_PATH, File::NONBLOCK | File::RDONLY){|file| file.read.scan(/^processor/).length}
         # TODO
         # when /darwin9/i
           # `hwprefs cpu_count`.to_i
@@ -181,7 +181,7 @@ module ParallelCopy
 
     verify_dir! @dst
 
-    @processor_count ||= processor_count
+    @processor_count ||= count_processors
     if @thread
       copy_with_threads
     elsif  @fork
