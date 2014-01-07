@@ -64,9 +64,9 @@ def copy_with_threads():
         count = 0
         for _file in files:
             child_thread = threading.Thread(target=copy, name= _file, args=( _file, ))
+            count += 1
             child_thread.start()
             threads.append(child_thread)
-            count += 1
 
             if count == processor_count:
                 for thread in threads:
@@ -86,12 +86,22 @@ def copy_with_forks():
     parent_pid = os.getpid()
     os.setpgid(parent_pid,parent_pid)
     if not _dir:
+        count = 0
         for _file in files:
+            count += 1
             child_pid = os.fork()
             if child_pid:
                 children.append(child_pid)
                 copy( _file )
                 break
+            else:
+                if count == processor_count:
+                    for child in children:
+                        os.waitpid(child, 0)
+
+                    count = 0
+                    del children[:]
+
 
         for child in children:
             os.waitpid(child, 0)
