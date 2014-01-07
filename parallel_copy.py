@@ -20,6 +20,31 @@ children = []
 CP_PATH = "/bin/cp"
 # END PATHS
 
+def help():
+    return '''
+
+        Help
+        # copy two files (file1 file2 ... ) using threads/processes into `[DIR]` directory
+        Options
+            --dst=[Destination]
+            -d or --dir # Copy a directory in Parallel, not implemented yet
+            --src=[Source Directory]( Must be a Directory -d )
+            -t or --with-threads # Parallel Copy using threads
+            -f or --with-forks # Parallel Copy using forks (processes), not finished yet
+
+        Usage
+            ruby parallel_copy.rb -t --dst=[DIR] file1 file2 ... # using threads
+            ruby parallel_copy.rb -f --dst=[DIR] file1 file2 ... # using processes
+            # by default works with processes
+            ruby parallel_copy.rb --dst=[DIR] file1 file2 ... # using processes
+
+            chmod +x parallel_copy.rb
+            ./parallel_copy.rb -t --dst=[DIR] file1 file2 ... # using threads
+            ./parallel_copy.rb -f --dst=[DIR] file1 file2 ... # using processes
+            ./parallel_copy.rb --dst=[DIR] file1 file2 ... # using processes
+
+    '''
+
 def copy( _file ):
     _str = "%(path)s %(file)s %(dst)s" % { "path": CP_PATH, "file": _file, "dst": dst }
     call(_str, stdin=None, shell=True)
@@ -60,8 +85,8 @@ def search_file( _file ):
     elif os.path.exists(_file):
         return _file
     else:
-        print _file, "Doesn't exist"
-        raise Exception(_file + " Doesn't exist")
+        print(_file + " Doesn't exist")
+        sys.exit(1)
 
 def verify_files():
     for _file in files:
@@ -75,7 +100,7 @@ def parse_options():
 
         for opt, arg in opts:
             if opt in ("-h", "--help"):
-                pass
+                help
             elif opt in ("-d","--dir"):
                 _dir = True
             elif opt == "--src":
@@ -84,14 +109,16 @@ def parse_options():
                 dst = arg
             elif opt in ("-t","--with-threads"):
                 thread, fork = True, False
-                pass
             elif opt in ("-f", "--with-forks"):
                 thread, fork = False, True
             else:
-                raise getopt.GetoptError("Unknown option\n")
+                print("Unknown option\n")
+                sys.exit(1)
 
         if len(args) == 0:
-            raise Exception("No Files supplied\n")
+            print help()
+            print("No Files supplied\n")
+            sys.exit(1)
         else:
             files = args
             verify_files()
@@ -101,9 +128,11 @@ def parse_options():
 if __name__ == '__main__':
     parse_options()
     if dst == None or len(dst) == 0:
-        raise Exception("Destination must be supplied.\n")
+        print("Destination must be supplied.\n")
+        sys.exit(1)
     elif _dir and (src == None or len(src) == 0):
-        raise Exception("if -d or --dir flag is true source path must be supplied.\n")
+        print("if -d or --dir flag is true source path must be supplied.\n")
+        sys.exit(1)
     elif thread:
         copy_with_threads()
     elif fork:
