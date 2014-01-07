@@ -19,7 +19,31 @@ module ParallelCopy
   USAGE
   BANNER.freeze
 
-  def help; end
+  def help
+<<-HELP
+
+    Help
+    # copy two files (file1 file2 ... ) using threads/processes into `[DIR]` directory
+    Options
+        --dst=[Destination]
+        -d or --dir # Copy a directory in Parallel, not implemented yet
+        --src=[Source Directory]( Must be a Directory -d )
+        -t or --with-threads # Parallel Copy using threads
+        -f or --with-forks # Parallel Copy using forks (processes), not finished yet
+
+    Usage
+        ruby parallel_copy.rb -t --dst=[DIR] file1 file2 ... # using threads
+        ruby parallel_copy.rb -f --dst=[DIR] file1 file2 ... # using processes
+        # by default works with processes
+        ruby parallel_copy.rb --dst=[DIR] file1 file2 ... # using processes
+
+        chmod +x parallel_copy.rb
+        ./parallel_copy.rb -t --dst=[DIR] file1 file2 ... # using threads
+        ./parallel_copy.rb -f --dst=[DIR] file1 file2 ... # using processes
+        ./parallel_copy.rb --dst=[DIR] file1 file2 ... # using processes
+
+  HELP
+  end
 
   @copy = ->(_file) {
     $stdout.puts "Thread #{_file}"
@@ -51,7 +75,8 @@ module ParallelCopy
       elsif File.exist? _file
         _file
       else
-        raise "#{_file} Doesn't exist"
+        $stderr.puts "#{_file} Doesn't exist"
+        exit(1)
       end
   end
 
@@ -67,7 +92,8 @@ module ParallelCopy
       if Dir.exist? dir
         true
       else
-        raise "#{dir} Doesn't exist"
+        $stderr.puts "#{dir} Doesn't exist"
+        exit(1)
       end
   end
 
@@ -102,13 +128,18 @@ module ParallelCopy
       end
     end.parse!
 
-    raise "No Files supplied\n" if ARGV.empty?
+    if ARGV.empty?
+        $stdout.puts help
+        $stderr.puts "No Files supplied\n"
+        exit(1)
+    end
     @files = ARGV
 
     verify_files!
 
     if !@dst || @dst.empty?
-      raise "Destination must be supplied.\n"
+      $stderr.puts "Destination must be supplied.\n"
+      exit(1)
     elsif @dir
       verify_dir! @src
     end
