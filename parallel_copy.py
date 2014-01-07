@@ -3,10 +3,10 @@
 import os
 import stat
 import sys
-import getopt
+from getopt import getopt, GetoptError
 import threading
-from signal import SIGKILL
 from subprocess import call
+import re
 
 thread = False
 fork = True
@@ -18,6 +18,7 @@ children = []
 
 # PATHS
 CP_PATH = "/bin/cp"
+CPU_INFO_PATH = "/proc/cpuinfo"
 # END PATHS
 
 def help():
@@ -98,6 +99,11 @@ def verify_files():
     for _file in files:
         _file = search_file(_file)
 
+def processor_count():
+    if os.getenv('_system_type') in ("Linux","linux"):
+        _file = open(CPU_INFO_PATH, "r")
+        return len(re.findall(r"^processor", _file.read(), flags= re.M))
+
 def parse_options():
     global thread, fork, src, dst, files, _dir
 
@@ -130,16 +136,18 @@ def parse_options():
             verify_files()
     except getopt.GetoptError as err:
         print str(err)
+        sys.exit(1)
 
 if __name__ == '__main__':
-    parse_options()
-    if dst == None or len(dst) == 0:
-        print("Destination must be supplied.\n")
-        sys.exit(1)
-    elif _dir and (src == None or len(src) == 0):
-        print("if -d or --dir flag is true source path must be supplied.\n")
-        sys.exit(1)
-    elif thread:
-        copy_with_threads()
-    elif fork:
-        copy_with_forks()
+    print processor_count()
+    # parse_options()
+    # if dst == None or len(dst) == 0:
+    #     print("Destination must be supplied.\n")
+    #     sys.exit(1)
+    # elif _dir and (src == None or len(src) == 0):
+    #     print("if -d or --dir flag is true source path must be supplied.\n")
+    #     sys.exit(1)
+    # elif thread:
+    #     copy_with_threads()
+    # elif fork:
+    #     copy_with_forks()
