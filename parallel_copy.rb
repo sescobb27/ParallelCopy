@@ -12,7 +12,7 @@ module ParallelCopy
   @dir = false
   @files = nil
   CP_PATH = "/bin/cp".freeze
-  @processor_count = 1
+  @processor_count = nil
   BANNER = <<-USAGE
   chmod +x parallel_copy.py
   # copy two files (text.txt Errors.go) using threads into `/home/simon` directory
@@ -33,6 +33,7 @@ module ParallelCopy
         --src=[Source Directory]( Must be a Directory -d )
         -t or --with-threads # Parallel Copy using threads
         -f or --with-forks # Parallel Copy using forks (processes), not finished yet
+        --p=[NUMBER] # Number of processes or threads created (Use this option with precaution you can run out of memory )
 
     Usage
         ruby parallel_copy.rb -t --dst=[DIR] file1 file2 ... # using threads
@@ -125,30 +126,34 @@ module ParallelCopy
     OptionParser.new do |opts|
       opts.banner = BANNER
 
-      opts.on("-h", "--help", "") do
+      opts.on("-h", "--help") do
         help
       end
 
-      opts.on("-t", "--with-threads", "") do
+      opts.on("-t", "--with-threads") do
         @thread = true
         @fork = false
       end
 
-      opts.on("-f", "--with-forks", "") do
+      opts.on("-f", "--with-forks") do
         @thread = false
         @fork = true
       end
 
-      opts.on("-d", "--dir", "") do
+      opts.on("-d", "--dir") do
         @dir = true
       end
 
-      opts.on("--src=", "") do |arg|
+      opts.on("--src=") do |arg|
         @src = arg
       end
 
-      opts.on("--dst=", "") do |arg|
+      opts.on("--dst=") do |arg|
         @dst = arg
+      end
+
+      opts.on("--p=") do |arg|
+        @processor_count = arg.to_i
       end
     end.parse!
 
@@ -170,7 +175,7 @@ module ParallelCopy
 
     verify_dir! @dst
 
-    @processor_count = processor_count
+    @processor_count ||= processor_count
     if @thread
       copy_with_threads
     elsif  @fork
