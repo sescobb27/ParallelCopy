@@ -17,8 +17,23 @@
 
 ### Usage
 ```bash
-chmod +x parallel_copy.py
-# copy two files (text.txt Errors.go) using threads into `/home/simon` directory
-./parallel_copy.py --dst=/home/simon -t /home/simon/Documents/texto.txt /home/simon/Documents/Go/Errors.go
+
+# copy two files (file1 file2 ... ) using threads/processes into `[DIR]` directory
+
+# Python
+  python parallel_copy.py --dst=[DIR] -t file1 file2 ...  # using threads
+  python parallel_copy.py --dst=[DIR] -f file1 file2 ...  # using processes
+  
+  chmod +x parallel_copy.py
+  ./parallel_copy.py --dst=[DIR] -t file1 file2 ...  # using threads
+  ./parallel_copy.py --dst=[DIR] -f file1 file2 ...  # using processes
+  
+# Ruby
+  ruby parallel_copy.rb -t --dst=[DIR] file1 file2 ... # using threads
+  ruby parallel_copy.rb -f --dst=[DIR] file1 file2 ... # using processes
+  
+  chmod +x parallel_copy.rb
+  ./parallel_copy.rb -t --dst=[DIR] file1 file2 ... # using threads
+  ./parallel_copy.rb -f --dst=[DIR] file1 file2 ... # using processes
 
 ```
