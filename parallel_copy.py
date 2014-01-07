@@ -87,7 +87,6 @@ def parse_options():
                 pass
             elif opt in ("-f", "--with-forks"):
                 thread, fork = False, True
-                pass
             else:
                 raise getopt.GetoptError("Unknown option\n")
 
@@ -103,7 +102,7 @@ if __name__ == '__main__':
     parse_options()
     if dst == None or len(dst) == 0:
         raise Exception("Destination must be supplied.\n")
-    elif _dir == True and (src == None or len(src) == 0):
+    elif _dir and (src == None or len(src) == 0):
         raise Exception("if -d or --dir flag is true source path must be supplied.\n")
     elif thread:
         copy_with_threads()
