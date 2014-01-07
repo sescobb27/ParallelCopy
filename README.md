@@ -1,6 +1,9 @@
 ## Author
 #### Simon Escobar Benitez
 
+#### Python version: 2.7.3
+#### Ruby version: 2.1.0
+
 ### Options
 > --dst=[Destination]
 
