@@ -16,7 +16,7 @@
 > -f or --with-forks # Parallel Copy using forks (processes), not finished yet
 
 #### Atention!!!
-#### The maximum number of threads and processes creaeted isthe number of cores your pc have
+#### The maximum number of threads and processes created is the number of cores your pc have
 
 ### Usage
 ```bash
