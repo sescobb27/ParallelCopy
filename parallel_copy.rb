@@ -11,16 +11,16 @@ module ParallelCopy
   @dst = nil
   @dir = false
   @files = nil
-  CP_PATH = "/bin/cp".freeze
+  CP_PATH = "/bin/cp".freeze()
   @processor_count = nil
   BANNER = <<-USAGE
   chmod +x parallel_copy.py
   # copy two files (text.txt Errors.go) using threads into `/home/simon` directory
   ./parallel_copy.py --dst=/home/simon -t file1 file2 ...
   USAGE
-  BANNER.freeze
+  BANNER.freeze()
 
-  CPU_INFO_PATH = "/proc/cpuinfo".freeze
+  CPU_INFO_PATH = "/proc/cpuinfo".freeze()
 
   def help
 <<-HELP
@@ -56,7 +56,7 @@ module ParallelCopy
   end
 
   @copy = ->(_file) {
-    $stdout.puts "Thread #{_file}"
+    $stdout.puts("Thread #{_file}")
     cmd = sprinft("%s %s %s", CP_PATH, _file, @dst)
   }
 
@@ -69,14 +69,14 @@ module ParallelCopy
       count = 0
       @files.each do |file|
         stdin, stdout, thread = Open3.popen2(sprintf("%s %s %s", CP_PATH, file, @dst))
-        stdin.close if stdin
-        stdout.close if stdout
+        stdin.close() if stdin
+        stdout.close() if stdout
         threads << thread
         count += 1
         if count == @processor_count
           threads.each(&:join)
           count = 0
-          threads.clear
+          threads.clear()
         end
       end
 
@@ -87,29 +87,29 @@ module ParallelCopy
 
   private def search_file(_file)
       file_path = "#{__dir__}/#{_file}"
-      if File.exist? file_path
+      if File.exist?(file_path)
         file_path
-      elsif File.exist? _file
+      elsif File.exist?(_file)
         _file
       else
-        $stderr.puts "#{_file} Doesn't exist"
+        $stderr.puts("#{_file} Doesn't exist")
         exit(1)
       end
   end
 
   def verify_files!
       @files.map! do |file|
-        file = search_file file
+        file = search_file(file)
       end
   end
 
   def verify_dir!(dir)
       regex = %r(\A~\/)
       dir.gsub!(regex, "#{ENV['HOME']}/").freeze if dir =~ regex
-      if Dir.exist? dir
+      if Dir.exist?(dir)
         true
       else
-        $stderr.puts "#{dir} Doesn't exist"
+        $stderr.puts("#{dir} Doesn't exist")
         exit(1)
       end
   end
@@ -133,7 +133,7 @@ module ParallelCopy
       opts.banner = BANNER
 
       opts.on("-h", "--help") do
-        help
+        help()
       end
 
       opts.on("-t", "--with-threads") do
@@ -164,8 +164,8 @@ module ParallelCopy
     end.parse!
 
     if ARGV.empty?
-        $stdout.puts help
-        $stderr.puts "No Files supplied\n"
+        $stdout.puts(help)
+        $stderr.puts("No Files supplied\n")
         exit(1)
     end
     @files = ARGV
@@ -176,10 +176,10 @@ module ParallelCopy
       $stderr.puts "Destination must be supplied.\n"
       exit(1)
     elsif @dir
-      verify_dir! @src
+      verify_dir!(@src)
     end
 
-    verify_dir! @dst
+    verify_dir!(@dst)
 
     @processor_count ||= count_processors
     if @thread
