@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io"
 	"os"
-	// "path"
-	"fmt"
+	"path/filepath"
 	"regexp"
 	"syscall"
 )
@@ -22,7 +22,26 @@ func verifyDir(dir *string) {
 
 }
 
+func searchFile(file *string) {
+	// file_path, _errorDir := os.Getwd()
+	// file_path += "/" + *file
+
+	if _, _errorExist := os.Stat(*file); os.IsNotExist(_errorExist) {
+		file_path, _ := filepath.Abs(*file)
+		if _, _errorExist = os.Stat(file_path); os.IsNotExist(_errorExist) {
+			fmt.Fprintf(os.Stderr, "%s Doesn't exist\n", *file)
+			syscall.Exit(1)
+		} else {
+			file = &file_path
+		}
+	}
+}
+
 func verifyFiles(files *[]string) {
+	for _, file := range *files {
+		searchFile(&file)
+		fmt.Fprintf(os.Stdout, "Exists: %s\n", file)
+	}
 }
 
 func countProcessors(count_processors *uint) {
@@ -86,6 +105,8 @@ func main() {
 		verifyDir(src)
 	}
 
+	verifyDir(dst)
+
 	if *dir && len(*src) == 0 {
 		fmt.Println("Error on Source Directory")
 		syscall.Exit(1)
@@ -93,7 +114,6 @@ func main() {
 
 	if *processor_count == 0 {
 		countProcessors(processor_count)
-		fmt.Fprintf(os.Stdout, "Cores: %d", *processor_count)
 	}
 
 	if *thread {
