@@ -83,10 +83,24 @@ module ParallelCopy
       threads.each(&:join)
   end
 
-  def copy_with_forks; end
+  def copy_with_forks
+      count = 0
+      children = []
+      @files.each do |file|
+        pid = spawn(command="#{CP_PATH} #{file} #{@dst}")
+        children << pid
+        count += 1
+        if count == @processor_count
+          children.each{ |pid| Process.wait(pid) }
+          count = 0
+          children.clear()
+        end
+      end
+      children.each{ |pid| Process.wait(pid) }
+  end
 
   private def search_file(_file)
-      file_path = "#{__dir__}/#{_file}"
+      file_path = "#{__dir__}/#{_file}".freeze()
       if File.exist?(file_path)
         file_path
       elsif File.exist?(_file)
@@ -105,10 +119,8 @@ module ParallelCopy
 
   def verify_dir!(dir)
       regex = %r(\A~\/)
-      dir.gsub!(regex, "#{ENV['HOME']}/").freeze if dir =~ regex
-      if Dir.exist?(dir)
-        true
-      else
+      dir.gsub!(regex, "#{ENV['HOME']}/").freeze() if dir =~ regex
+      unless Dir.exist?(dir)
         $stderr.puts("#{dir} Doesn't exist")
         exit(1)
       end
@@ -117,7 +129,7 @@ module ParallelCopy
   def count_processors
       case ENV["_system_type"]
         when /linux/i
-          File.open(CPU_INFO_PATH, File::NONBLOCK | File::RDONLY){|file| file.read.scan(/^processor/).length}
+          File.open(CPU_INFO_PATH, File::NONBLOCK | File::RDONLY){|file| file.read().scan(/^processor/).length}
         # TODO
         # when /darwin9/i
           # `hwprefs cpu_count`.to_i
@@ -173,10 +185,15 @@ module ParallelCopy
     verify_files!
 
     if !@dst || @dst.empty?
-      $stderr.puts "Destination must be supplied.\n"
+      $stderr.puts("Destination must be supplied.\n")
       exit(1)
     elsif @dir
-      verify_dir!(@src)
+      if  (!@src || @src.empty?)
+        $stderr.puts("Source directory with (-d) flag must be supplied.\n -d --src=/PATH/TO/DIR")
+        exit(1)
+      else
+        verify_dir!(@src)
+      end
     end
 
     verify_dir!(@dst)
