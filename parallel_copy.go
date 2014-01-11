@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
+	"os/exec"
 	"regexp"
+	"runtime"
+	"sync"
 	"syscall"
 )
 
@@ -18,29 +20,22 @@ const (
 	CP_PATH         = "/bin/cp"
 )
 
-func verifyDir(dir *string) {
-
+func verifyDir(dir_path *string) {
+	exists(dir_path)
 }
 
-func searchFile(file *string) {
-	// file_path, _errorDir := os.Getwd()
-	// file_path += "/" + *file
-
-	if _, _errorExist := os.Stat(*file); os.IsNotExist(_errorExist) {
-		file_path, _ := filepath.Abs(*file)
-		if _, _errorExist = os.Stat(file_path); os.IsNotExist(_errorExist) {
-			fmt.Fprintf(os.Stderr, "%s Doesn't exist\n", *file)
-			syscall.Exit(1)
-		} else {
-			file = &file_path
-		}
+// exists returns whether the given file or directory exists or not
+func exists(path *string) {
+	_, _errorPath := os.Stat(*path)
+	if os.IsNotExist(_errorPath) {
+		fmt.Fprintf(os.Stderr, "%s Doesn't exist\n", *path)
+		syscall.Exit(1)
 	}
 }
 
 func verifyFiles(files *[]string) {
-	for _, file := range *files {
-		searchFile(&file)
-		fmt.Fprintf(os.Stdout, "Exists: %s\n", file)
+	for _, file_path := range *files {
+		exists(&file_path)
 	}
 }
 
@@ -53,6 +48,7 @@ func countProcessors(count_processors *uint) {
 			fmt.Fprint(os.Stderr, "Error: %s", _fileError)
 			syscall.Exit(1)
 		}
+		defer file.Close()
 		buf := make([]byte, 1024)
 		regex = regexp.MustCompile(PROCESSOR_REGEX)
 		for {
@@ -72,12 +68,27 @@ func countProcessors(count_processors *uint) {
 	}
 }
 
-func copyWithForks() {
+func copyWithForks(count_processors *uint, files *[]string, dst *string) {
 
 }
 
-func copyWithThreads() {
+func copyWithThreads(count_processors *uint, files *[]string, dst *string) {
+	var worker sync.WaitGroup
+	for _, file := range *files {
+		// Increment the WaitGroup counter.
+		worker.Add(1)
+		go func(file_path *string, dst *string) {
+			// Decrement the counter when the goroutine completes.
+			defer worker.Done()
+			cmd := exec.Command(CP_PATH, *file_path, *dst)
+			_errorCommand := cmd.Start()
 
+			if _errorCommand != nil {
+				fmt.Fprintf(os.Stderr, "Error on copy %s: %s", *file_path, _errorCommand)
+			}
+		}(&file, dst)
+	}
+	worker.Wait()
 }
 
 func main() {
@@ -121,8 +132,8 @@ func main() {
 	}
 
 	if *fork {
-		copyWithForks()
+		copyWithForks(processor_count, &files, dst)
 	} else {
-		copyWithThreads()
+		copyWithThreads(processor_count, &files, dst)
 	}
 }
