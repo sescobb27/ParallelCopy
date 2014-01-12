@@ -1,8 +1,16 @@
 ## Author
 #### Simon Escobar Benitez
 
+##### Made in my free-time
+
 #### Python version: 2.7.3
 #### Ruby version: 2.1.0
+
+### TO-DO
+> * Parallel Copy in Golang with goroutines
+* Parallel Copy on DIRs
+* Optimize
+* Test
 
 ### Options
 > Options
