@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"sync"
 	"syscall"
@@ -30,6 +31,8 @@ func exists(path *string) {
 		fmt.Fprintf(os.Stderr, "%s Doesn't exist\n", *path)
 		syscall.Exit(1)
 	}
+	str, _ := filepath.Abs(*path)
+	path = &str
 }
 
 func verifyFiles(files *[]string) {
@@ -67,8 +70,29 @@ func countProcessors(count_processors *uint) {
 	}
 }
 
-func copyWithForks(count_processors *uint, files *[]string, dst *string) {
+func waitChildren(children []*exec.Cmd) {
+	for _, child := range children {
+		_err := child.Wait()
+		if _err != nil {
+			fmt.Fprintf(os.Stderr, "Error waiting child: %s", _err)
+			syscall.Exit(1)
+		}
+	}
+}
 
+func copyWithForks(count_processors *uint, files *[]string, dst *string) {
+	syscall.Setpgid(os.Getpid(), os.Getpid())
+	children := make([]*exec.Cmd, 0, *count_processors)
+	for _, file := range *files {
+		cmd := exec.Command(CP_PATH, file, *dst)
+		cmd.Start()
+		children = append(children, cmd)
+		if len(children) == int(*count_processors) {
+			waitChildren(children)
+			children = nil
+		}
+	}
+	waitChildren(children)
 }
 
 func copyWithThreads(count_processors *uint, files *[]string, dst *string) {
